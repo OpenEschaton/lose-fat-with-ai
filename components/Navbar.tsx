@@ -2,6 +2,7 @@
 
 import { AvatarIcon } from '@radix-ui/react-icons';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { User } from '@supabase/auth-js';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,11 +17,13 @@ import { Database } from '@/types/supabase';
 import ClientSideCredits from './realtime/ClientSideCredits';
 import Modal from './Modal';
 
+import { creditsRow } from '@/types/utils';
+
 const stripeIsConfigured = process.env.NEXT_PUBLIC_STRIPE_IS_ENABLED === 'true';
 
 export default function Navbar() {
-  const [user, setUser] = useState(null);
-  const [credits, setCredits] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [credits, setCredits] = useState<creditsRow | null>(null);
   const supabase = createClientComponentClient<Database>();
 
   useEffect(() => {
@@ -28,7 +31,7 @@ export default function Navbar() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      setUser(user);
+      setUser(user || null);
 
       if (user) {
         const { data: creditsData } = await supabase

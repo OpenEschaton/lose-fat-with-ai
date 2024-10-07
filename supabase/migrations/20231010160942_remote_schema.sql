@@ -116,7 +116,7 @@ ALTER TABLE ONLY "public"."samples"
     ADD CONSTRAINT "samples_pkey" PRIMARY KEY ("id");
 
 ALTER TABLE ONLY "public"."credits"
-    ADD CONSTRAINT "credits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+    ADD CONSTRAINT "credits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
 
 ALTER TABLE ONLY "public"."images"
     ADD CONSTRAINT "images_modelId_fkey" FOREIGN KEY ("modelId") REFERENCES "public"."models"("id") ON DELETE CASCADE;

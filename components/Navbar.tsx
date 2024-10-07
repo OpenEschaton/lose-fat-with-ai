@@ -1,38 +1,47 @@
+'use client';
+
 import { AvatarIcon } from '@radix-ui/react-icons';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import Link from 'next/link';
 import { Button } from './ui/button';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Database } from '@/types/supabase';
 import ClientSideCredits from './realtime/ClientSideCredits';
-
-export const dynamic = 'force-dynamic';
+import Modal from './Modal';
 
 const stripeIsConfigured = process.env.NEXT_PUBLIC_STRIPE_IS_ENABLED === 'true';
 
-export const revalidate = 0;
+export default function Navbar() {
+  const [user, setUser] = useState(null);
+  const [credits, setCredits] = useState(null);
+  const supabase = createClientComponentClient<Database>();
 
-export default async function Navbar() {
-  const supabase = createServerComponentClient<Database>({ cookies });
+  useEffect(() => {
+    async function fetchUserAndCredits() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+      if (user) {
+        const { data: creditsData } = await supabase
+          .from('credits')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        setCredits(creditsData);
+      }
+    }
 
-  const { data: credits } = await supabase
-    .from('credits')
-    .select('*')
-    .eq('user_id', user?.id ?? '')
-    .single();
+    fetchUserAndCredits();
+  }, [supabase]);
 
   return (
     <div className="flex w-full px-4 lg:px-40 py-4 items-center border-b text-center gap-8 justify-between">
@@ -61,7 +70,7 @@ export default async function Navbar() {
         )}
         {user && (
           <div className="flex flex-row gap-4 text-center align-middle justify-center">
-            {stripeIsConfigured && <ClientSideCredits creditsRow={credits ? credits : null} />}
+            {stripeIsConfigured && <ClientSideCredits creditsRow={credits} />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <AvatarIcon height={24} width={24} className="text-primary" />
@@ -71,6 +80,7 @@ export default async function Navbar() {
                   {user.email}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DeleteAccountButton />
                 <form action="/auth/sign-out" method="post">
                   <Button type="submit" className="w-full text-left" variant={'ghost'}>
                     Log out
@@ -82,5 +92,35 @@ export default async function Navbar() {
         )}
       </div>
     </div>
+  );
+}
+
+function DeleteAccountButton() {
+  const [showModal, setShowModal] = useState(false);
+
+  return (
+    <>
+      <Button onClick={() => setShowModal(true)} className="w-full text-left" variant={'ghost'}>
+        Delete Account
+      </Button>
+
+      <Modal isOpen={showModal} title="Delete Account" onClose={() => setShowModal(false)}>
+        <p className="mb-4">
+          Are you sure you want to delete your account? This action cannot be undone and you will
+          lose all your data and credits.
+        </p>
+        <div className="flex justify-end space-x-2">
+          <Button onClick={() => setShowModal(false)} variant="outline">
+            Cancel
+          </Button>
+          <form action="/auth/delete-account" method="post">
+            <input type="hidden" name="_method" value="delete" />
+            <Button type="submit" variant="destructive">
+              Delete Account
+            </Button>
+          </form>
+        </div>
+      </Modal>
+    </>
   );
 }

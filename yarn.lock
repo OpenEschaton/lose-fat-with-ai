@@ -1253,7 +1253,7 @@
   dependencies:
     jose "^4.14.4"
 
-"@supabase/auth-js@2.65.0":
+"@supabase/auth-js@2.65.0", "@supabase/auth-js@^2.65.0":
   version "2.65.0"
   resolved "https://registry.yarnpkg.com/@supabase/auth-js/-/auth-js-2.65.0.tgz#e345c492f8cbc31cd6289968eae0e349ff0f39e9"
   integrity sha512-+wboHfZufAE2Y612OsKeVP4rVOeGZzzMLD/Ac3HrTQkkY4qXNjI6Af9gtmxwccE5nFvTiF114FEbIQ1hRq5uUw==
